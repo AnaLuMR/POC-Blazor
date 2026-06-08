@@ -1,0 +1,193 @@
+@page "/motoristas"
+@inject ILogisticaService Svc
+@layout AppLayout
+
+<PageTitle>Motoristas – LogisticaPOC</PageTitle>
+
+@if (loading)
+{
+    <div class="loading-wrap"><div class="loading-spinner"></div><p>Carregando motoristas...</p></div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Motoristas</h1>
+            <p>@motoristas.Count() motoristas cadastrados</p>
+        </div>
+        <button class="btn btn-primary" @onclick="OpenCreate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Novo Motorista
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMsg))
+    {
+        <div class="alert alert-success">@successMsg</div>
+    }
+
+    <div class="card">
+        <div class="table-wrapper">
+            @if (!motoristas.Any())
+            {
+                <div class="empty-state">
+                    <h3>Nenhum motorista cadastrado</h3>
+                </div>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Telefone</th>
+                            <th>Admissão</th>
+                            <th>Disponibilidade</th>
+                            <th>Entregas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in motoristas)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="avatar">@Initials(m.Nome)</div>
+                                        <span style="font-weight:600">@m.Nome</span>
+                                    </div>
+                                </td>
+                                <td class="td-muted">@m.CPF</td>
+                                <td class="td-muted">@m.Telefone</td>
+                                <td class="td-muted">@m.DataAdmissao.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge @DisponibilidadeClass(m.Disponibilidade)">@DisponibilidadeLabel(m.Disponibilidade)</span></td>
+                                <td>
+                                    <span class="badge badge-emtransito">@m.TotalEntregas</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@if (showCreate)
+{
+    <div class="modal-backdrop" @onclick="CloseCreate">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>Novo Motorista</h3>
+                <button class="btn btn-ghost" @onclick="CloseCreate" style="padding:6px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <EditForm Model="model" OnValidSubmit="HandleCreate" FormName="novo-motorista">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Nome completo *</label>
+                            <InputText class="form-control" @bind-Value="model.Nome" placeholder="Nome do motorista" />
+                            <ValidationMessage For="() => model.Nome" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>CPF *</label>
+                            <InputText class="form-control" @bind-Value="model.CPF" placeholder="000.000.000-00" />
+                            <ValidationMessage For="() => model.CPF" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone *</label>
+                            <InputText class="form-control" @bind-Value="model.Telefone" placeholder="(11) 99000-0000" />
+                            <ValidationMessage For="() => model.Telefone" class="validation-message" />
+                        </div>
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Data de Admissão *</label>
+                            <InputDate class="form-control" @bind-Value="model.DataAdmissao" />
+                            <ValidationMessage For="() => model.DataAdmissao" class="validation-message" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreate">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter] AppLayout? Layout { get; set; }
+
+    private IEnumerable<MotoristaDto> motoristas = [];
+    private bool loading = true;
+    private bool showCreate;
+    private string successMsg = "";
+    private MotoristaFormModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Layout?.SetTitle("Motoristas");
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        try { motoristas = await Svc.GetMotoristasAsync(); }
+        finally { loading = false; }
+    }
+
+    private void OpenCreate() { model = new(); showCreate = true; }
+    private void CloseCreate() => showCreate = false;
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            await Svc.CriarMotoristaAsync(new(model.Nome, model.CPF, model.Telefone, model.DataAdmissao));
+            showCreate = false;
+            successMsg = "Motorista cadastrado com sucesso!";
+            await Load();
+        }
+        catch (Exception ex) { successMsg = $"Erro: {ex.Message}"; }
+    }
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            ? $"{parts[0][0]}{parts[^1][0]}".ToUpper()
+            : name[..Math.Min(2, name.Length)].ToUpper();
+    }
+
+    private static string DisponibilidadeClass(DisponibilidadeMotorista d) => d switch
+    {
+        DisponibilidadeMotorista.Disponivel => "badge-disponivel",
+        DisponibilidadeMotorista.EmRota     => "badge-emrota",
+        DisponibilidadeMotorista.Folga      => "badge-folga",
+        _                                   => ""
+    };
+
+    private static string DisponibilidadeLabel(DisponibilidadeMotorista d) => d switch
+    {
+        DisponibilidadeMotorista.Disponivel => "Disponível",
+        DisponibilidadeMotorista.EmRota     => "Em Rota",
+        DisponibilidadeMotorista.Folga      => "Folga",
+        _                                   => d.ToString()
+    };
+
+    private sealed class MotoristaFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required] public string Nome { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string CPF { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Telefone { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public DateTime DataAdmissao { get; set; } = DateTime.Today;
+    }
+}

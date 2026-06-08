@@ -1,0 +1,145 @@
+@page "/rotas"
+@inject ILogisticaService Svc
+@layout AppLayout
+
+<PageTitle>Rotas – LogisticaPOC</PageTitle>
+
+@if (loading)
+{
+    <div class="loading-wrap"><div class="loading-spinner"></div><p>Carregando rotas...</p></div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Rotas</h1>
+            <p>@rotas.Count() rotas cadastradas</p>
+        </div>
+        <button class="btn btn-primary" @onclick="OpenCreate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nova Rota
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMsg))
+    {
+        <div class="alert alert-success">@successMsg</div>
+    }
+
+    @if (!rotas.Any())
+    {
+        <div class="card">
+            <div class="empty-state"><h3>Nenhuma rota cadastrada</h3></div>
+        </div>
+    }
+    else
+    {
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+            @foreach (var r in rotas)
+            {
+                <RouteSummary Rota="r" />
+            }
+        </div>
+    }
+}
+
+@if (showCreate)
+{
+    <div class="modal-backdrop" @onclick="CloseCreate">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>Nova Rota</h3>
+                <button class="btn btn-ghost" @onclick="CloseCreate" style="padding:6px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <EditForm Model="model" OnValidSubmit="HandleCreate" FormName="nova-rota">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Nome da Rota *</label>
+                            <InputText class="form-control" @bind-Value="model.Nome" placeholder="Ex: Rota Centro-Sul" />
+                            <ValidationMessage For="() => model.Nome" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Origem *</label>
+                            <InputText class="form-control" @bind-Value="model.Origem" placeholder="Cidade/bairro de origem" />
+                            <ValidationMessage For="() => model.Origem" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Destino *</label>
+                            <InputText class="form-control" @bind-Value="model.Destino" placeholder="Cidade/bairro de destino" />
+                            <ValidationMessage For="() => model.Destino" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Distância (km) *</label>
+                            <InputNumber class="form-control" @bind-Value="model.DistanciaKm" />
+                            <ValidationMessage For="() => model.DistanciaKm" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Tempo previsto (min) *</label>
+                            <InputNumber class="form-control" @bind-Value="model.TempoPrevistoMinutos" />
+                            <ValidationMessage For="() => model.TempoPrevistoMinutos" class="validation-message" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreate">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter] AppLayout? Layout { get; set; }
+
+    private IEnumerable<RotaDto> rotas = [];
+    private bool loading = true;
+    private bool showCreate;
+    private string successMsg = "";
+    private RotaFormModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Layout?.SetTitle("Rotas");
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        try { rotas = await Svc.GetRotasAsync(); }
+        finally { loading = false; }
+    }
+
+    private void OpenCreate() { model = new(); showCreate = true; }
+    private void CloseCreate() => showCreate = false;
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            await Svc.CriarRotaAsync(new(model.Nome, model.Origem, model.Destino, model.DistanciaKm, model.TempoPrevistoMinutos));
+            showCreate = false;
+            successMsg = "Rota criada com sucesso!";
+            await Load();
+        }
+        catch (Exception ex) { successMsg = $"Erro: {ex.Message}"; }
+    }
+
+    private sealed class RotaFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required] public string Nome { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Origem { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Destino { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Range(0.1, 99999)] public double DistanciaKm { get; set; } = 10;
+        [System.ComponentModel.DataAnnotations.Range(1, 9999)] public int TempoPrevistoMinutos { get; set; } = 30;
+    }
+}

@@ -1,0 +1,176 @@
+@page "/veiculos"
+@inject ILogisticaService Svc
+@layout AppLayout
+
+<PageTitle>Veículos – LogisticaPOC</PageTitle>
+
+@if (loading)
+{
+    <div class="loading-wrap"><div class="loading-spinner"></div><p>Carregando veículos...</p></div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Veículos</h1>
+            <p>@veiculos.Count() veículos cadastrados</p>
+        </div>
+        <button class="btn btn-primary" @onclick="OpenCreate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Novo Veículo
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMsg))
+    {
+        <div class="alert alert-success">@successMsg</div>
+    }
+
+    <div class="card">
+        <div class="table-wrapper">
+            @if (!veiculos.Any())
+            {
+                <div class="empty-state"><h3>Nenhum veículo cadastrado</h3></div>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Placa</th>
+                            <th>Modelo</th>
+                            <th>Ano</th>
+                            <th>Capacidade</th>
+                            <th>Status</th>
+                            <th>Entregas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in veiculos)
+                        {
+                            <tr>
+                                <td><span class="td-code">@v.Placa</span></td>
+                                <td style="font-weight:600">@v.Modelo</td>
+                                <td class="td-muted">@v.Ano</td>
+                                <td class="td-muted">@v.CapacidadeKg.ToString("N0") kg</td>
+                                <td><span class="badge @StatusClass(v.Status)">@StatusLabel(v.Status)</span></td>
+                                <td><span class="badge badge-emtransito">@v.TotalEntregas</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@if (showCreate)
+{
+    <div class="modal-backdrop" @onclick="CloseCreate">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>Novo Veículo</h3>
+                <button class="btn btn-ghost" @onclick="CloseCreate" style="padding:6px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <EditForm Model="model" OnValidSubmit="HandleCreate" FormName="novo-veiculo">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Placa *</label>
+                            <InputText class="form-control" @bind-Value="model.Placa" placeholder="ABC-1234" />
+                            <ValidationMessage For="() => model.Placa" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Modelo *</label>
+                            <InputText class="form-control" @bind-Value="model.Modelo" placeholder="Ex: Fiat Toro" />
+                            <ValidationMessage For="() => model.Modelo" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Ano *</label>
+                            <InputNumber class="form-control" @bind-Value="model.Ano" />
+                            <ValidationMessage For="() => model.Ano" class="validation-message" />
+                        </div>
+                        <div class="form-group">
+                            <label>Capacidade (kg) *</label>
+                            <InputNumber class="form-control" @bind-Value="model.CapacidadeKg" />
+                            <ValidationMessage For="() => model.CapacidadeKg" class="validation-message" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreate">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter] AppLayout? Layout { get; set; }
+
+    private IEnumerable<VeiculoDto> veiculos = [];
+    private bool loading = true;
+    private bool showCreate;
+    private string successMsg = "";
+    private VeiculoFormModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Layout?.SetTitle("Veículos");
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        try { veiculos = await Svc.GetVeiculosAsync(); }
+        finally { loading = false; }
+    }
+
+    private void OpenCreate() { model = new(); showCreate = true; }
+    private void CloseCreate() => showCreate = false;
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            await Svc.CriarVeiculoAsync(new(model.Placa, model.Modelo, model.Ano, model.CapacidadeKg));
+            showCreate = false;
+            successMsg = "Veículo cadastrado com sucesso!";
+            await Load();
+        }
+        catch (Exception ex) { successMsg = $"Erro: {ex.Message}"; }
+    }
+
+    private static string StatusClass(StatusVeiculo s) => s switch
+    {
+        StatusVeiculo.Disponivel  => "badge-disponivel",
+        StatusVeiculo.EmRota      => "badge-emrota",
+        StatusVeiculo.Manutencao  => "badge-manutencao",
+        _                         => ""
+    };
+
+    private static string StatusLabel(StatusVeiculo s) => s switch
+    {
+        StatusVeiculo.Disponivel  => "Disponível",
+        StatusVeiculo.EmRota      => "Em Rota",
+        StatusVeiculo.Manutencao  => "Manutenção",
+        _                         => s.ToString()
+    };
+
+    private sealed class VeiculoFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required] public string Placa { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Modelo { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Range(1900, 2100)] public int Ano { get; set; } = DateTime.Today.Year;
+        [System.ComponentModel.DataAnnotations.Range(1, 999999)] public decimal CapacidadeKg { get; set; } = 1000;
+    }
+}

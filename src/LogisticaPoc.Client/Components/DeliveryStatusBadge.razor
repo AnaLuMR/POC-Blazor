@@ -1,0 +1,27 @@
+@* Renders a colored badge for a StatusEntrega value *@
+
+<span class="badge @CssClass">@Label</span>
+
+@code {
+    [Parameter, EditorRequired] public StatusEntrega Status { get; set; }
+
+    private string Label => Status switch
+    {
+        StatusEntrega.Pendente   => "Pendente",
+        StatusEntrega.EmTransito => "Em Trânsito",
+        StatusEntrega.Concluida  => "Concluída",
+        StatusEntrega.Atrasada   => "Atrasada",
+        StatusEntrega.Cancelada  => "Cancelada",
+        _                        => Status.ToString()
+    };
+
+    private string CssClass => Status switch
+    {
+        StatusEntrega.Pendente   => "badge-pendente",
+        StatusEntrega.EmTransito => "badge-emtransito",
+        StatusEntrega.Concluida  => "badge-concluida",
+        StatusEntrega.Atrasada   => "badge-atrasada",
+        StatusEntrega.Cancelada  => "badge-cancelada",
+        _                        => ""
+    };
+}

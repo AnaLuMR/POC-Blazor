@@ -1,0 +1,35 @@
+@* Summary card for a single route *@
+
+<div class="card" style="height:100%">
+    <div class="card-header">
+        <h3>@Rota.Nome</h3>
+        <span class="badge badge-emtransito">@Rota.TotalEntregas entregas</span>
+    </div>
+    <div class="card-body">
+        <div class="detail-row">
+            <span class="detail-label">Origem</span>
+            <span class="detail-value">@Rota.Origem</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Destino</span>
+            <span class="detail-value">@Rota.Destino</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Distância</span>
+            <span class="detail-value">@Rota.DistanciaKm.ToString("F1") km</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Tempo previsto</span>
+            <span class="detail-value">@FormatTempo(Rota.TempoPrevistoMinutos)</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RotaDto Rota { get; set; } = null!;
+
+    private static string FormatTempo(int minutos) =>
+        minutos >= 60
+            ? $"{minutos / 60}h {minutos % 60}min"
+            : $"{minutos} min";
+}

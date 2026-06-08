@@ -1,0 +1,104 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <a href="/dashboard" class="sidebar-logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
+            </div>
+            <div class="logo-text">
+                <span class="logo-name">LogisticaPOC</span>
+                <span class="logo-tag">Blazor Multiplataforma</span>
+            </div>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="nav-section-title">Principal</li>
+            <li class="nav-item">
+                <NavLink href="/dashboard" Match="NavLinkMatch.All">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </NavLink>
+            </li>
+
+            <li class="nav-section-title">Operações</li>
+            <li class="nav-item">
+                <NavLink href="/entregas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                    <span>Entregas</span>
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink href="/rotas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                    </svg>
+                    <span>Rotas</span>
+                </NavLink>
+            </li>
+
+            <li class="nav-section-title">Recursos</li>
+            <li class="nav-item">
+                <NavLink href="/motoristas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span>Motoristas</span>
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink href="/veiculos">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13"/>
+                        <path d="M16 8h4l3 3v5h-7V8z"/>
+                        <circle cx="5.5" cy="18.5" r="2.5"/>
+                        <circle cx="18.5" cy="18.5" r="2.5"/>
+                    </svg>
+                    <span>Veículos</span>
+                </NavLink>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div>POC Blazor v1.0</div>
+            <div style="margin-top:3px">Multiplataforma</div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="top-bar">
+            <span class="top-bar-title">@PageTitle</span>
+            <span class="top-bar-badge">POC</span>
+        </header>
+
+        <main class="content-area">
+            <CascadingValue Value="this">
+                @Body
+            </CascadingValue>
+        </main>
+    </div>
+</div>
+
+@code {
+    public string PageTitle { get; set; } = "Logística";
+
+    public void SetTitle(string title)
+    {
+        PageTitle = title;
+        StateHasChanged();
+    }
+}

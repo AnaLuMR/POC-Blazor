@@ -1,0 +1,19 @@
+@using LogisticaPoc.Client.Layout
+@using LogisticaPoc.Client.Services
+
+<Router AppAssembly="typeof(App).Assembly"
+        AdditionalAssemblies="@([typeof(LogisticaService).Assembly])">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(AppLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(AppLayout)">
+            <div style="text-align:center;padding:80px 20px">
+                <h1 style="font-size:72px;color:var(--primary);margin:0">404</h1>
+                <p style="font-size:18px;color:var(--muted)">Página não encontrada</p>
+                <a href="/dashboard" class="btn btn-primary" style="margin-top:16px">Voltar ao Dashboard</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

@@ -1,0 +1,98 @@
+# Build
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]uild/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio / Rider
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+.idea/
+*.DotSettings.user
+
+# VS Code / Cursor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nuget.props
+*.nuget.targets
+packages/
+*.nupkg
+*.snupkg
+*.cache
+*.dll
+*.exe
+*.pdb
+*.mdb
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+TestResults/
+
+# ASP.NET / Blazor
+**/wwwroot/dist/
+**/wwwroot/service-worker-assets.js
+**/wwwroot/service-worker.js
+ScaffoldingReadMe.txt
+
+# Entity Framework / SQLite (banco local de desenvolvimento)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# User secrets e configuracao local (nao versionar segredos)
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
+
+# Publicacao
+publish/
+*.pubxml
+*.publishproj
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Logs e temporarios
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+# Certificados locais
+*.pfx
+*.p12

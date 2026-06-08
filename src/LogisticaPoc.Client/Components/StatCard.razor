@@ -1,0 +1,23 @@
+@* A single KPI stat card *@
+
+<div class="stat-card">
+    <div class="stat-card-header">
+        <span class="stat-card-label">@Label</span>
+        <div class="stat-card-icon @ColorClass">
+            @ChildContent
+        </div>
+    </div>
+    <div class="stat-card-value">@Value</div>
+    @if (!string.IsNullOrEmpty(SubText))
+    {
+        <div class="stat-card-sub">@SubText</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public int Value { get; set; }
+    [Parameter] public string SubText { get; set; } = "";
+    [Parameter] public string ColorClass { get; set; } = "orange";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,165 @@
+@* Modal form for creating a new delivery *@
+
+@if (Visible)
+{
+    <div class="modal-backdrop" @onclick="HandleBackdropClick">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>Nova Entrega</h3>
+                <button class="btn btn-ghost" @onclick="Cancel" style="padding:6px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <EditForm Model="model" OnValidSubmit="Submit" FormName="nova-entrega">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Destinatário *</label>
+                            <InputText class="form-control" @bind-Value="model.Destinatario" placeholder="Nome da empresa ou pessoa" />
+                            <ValidationMessage For="() => model.Destinatario" class="validation-message" />
+                        </div>
+
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Endereço de Destino *</label>
+                            <InputText class="form-control" @bind-Value="model.EnderecoDestino" placeholder="Rua, número, cidade" />
+                            <ValidationMessage For="() => model.EnderecoDestino" class="validation-message" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Data Prevista *</label>
+                            <InputDate class="form-control" @bind-Value="model.DataPrevista" />
+                            <ValidationMessage For="() => model.DataPrevista" class="validation-message" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Motorista</label>
+                            <InputSelect class="form-control" @bind-Value="model.MotoristaId">
+                                <option value="">— Não atribuir —</option>
+                                @foreach (var m in Motoristas)
+                                {
+                                    <option value="@m.Id">@m.Nome</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Veículo</label>
+                            <InputSelect class="form-control" @bind-Value="model.VeiculoId">
+                                <option value="">— Não atribuir —</option>
+                                @foreach (var v in Veiculos)
+                                {
+                                    <option value="@v.Id">@v.Placa – @v.Modelo</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Rota</label>
+                            <InputSelect class="form-control" @bind-Value="model.RotaId">
+                                <option value="">— Não atribuir —</option>
+                                @foreach (var r in Rotas)
+                                {
+                                    <option value="@r.Id">@r.Nome</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group" style="grid-column:span 2">
+                            <label>Observações</label>
+                            <InputText class="form-control" @bind-Value="model.Observacoes" placeholder="Informações adicionais (opcional)" />
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(error))
+                    {
+                        <div class="alert alert-danger" style="margin-top:16px">@error</div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@saving">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" disabled="@saving">
+                        @if (saving)
+                        {
+                            <span>Salvando...</span>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>Criar Entrega</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public IEnumerable<MotoristaDto> Motoristas { get; set; } = [];
+    [Parameter] public IEnumerable<VeiculoDto> Veiculos { get; set; } = [];
+    [Parameter] public IEnumerable<RotaDto> Rotas { get; set; } = [];
+    [Parameter] public EventCallback<CriarEntregaRequest> OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private FormModel model = new();
+    private bool saving;
+    private string error = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Visible) { model = new(); error = ""; }
+    }
+
+    private async Task Submit()
+    {
+        saving = true;
+        error = "";
+        try
+        {
+            var req = new CriarEntregaRequest(
+                model.Destinatario,
+                model.EnderecoDestino,
+                model.DataPrevista,
+                model.MotoristaId == 0 ? null : model.MotoristaId,
+                model.VeiculoId == 0 ? null : model.VeiculoId,
+                model.RotaId == 0 ? null : model.RotaId,
+                string.IsNullOrWhiteSpace(model.Observacoes) ? null : model.Observacoes
+            );
+            await OnConfirm.InvokeAsync(req);
+        }
+        catch (Exception ex)
+        {
+            error = $"Erro ao salvar: {ex.Message}";
+        }
+        finally { saving = false; }
+    }
+
+    private Task Cancel() => OnCancel.InvokeAsync();
+
+    private void HandleBackdropClick() { if (!saving) OnCancel.InvokeAsync(); }
+
+    private sealed class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Destinatário é obrigatório")]
+        public string Destinatario { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Endereço é obrigatório")]
+        public string EnderecoDestino { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Data prevista é obrigatória")]
+        public DateTime DataPrevista { get; set; } = DateTime.Today.AddDays(3);
+
+        public int? MotoristaId { get; set; }
+        public int? VeiculoId { get; set; }
+        public int? RotaId { get; set; }
+        public string? Observacoes { get; set; }
+    }
+}

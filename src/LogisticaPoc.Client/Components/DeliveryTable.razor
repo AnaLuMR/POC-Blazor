@@ -1,0 +1,117 @@
+@* Table listing deliveries with optional filter and action callbacks *@
+
+<div class="card">
+    <div class="card-header">
+        <h3>@Title</h3>
+        <div class="toolbar">
+            <input class="search-input" type="text" placeholder="Buscar entrega..."
+                   @bind="searchTerm" @bind:event="oninput" />
+            @if (OnCreate.HasDelegate)
+            {
+                <button class="btn btn-primary" @onclick="() => OnCreate.InvokeAsync()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nova Entrega
+                </button>
+            }
+        </div>
+    </div>
+    <div class="table-wrapper">
+        @if (!Filtered.Any())
+        {
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                </svg>
+                <h3>Nenhuma entrega encontrada</h3>
+                <p>@(string.IsNullOrEmpty(searchTerm) ? "Nenhuma entrega cadastrada ainda." : "Tente outro termo de busca.")</p>
+            </div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Destinatário</th>
+                        <th>Endereço</th>
+                        <th>Rota</th>
+                        <th>Motorista</th>
+                        <th>Previsão</th>
+                        <th>Status</th>
+                        @if (OnSelect.HasDelegate)
+                        {
+                            <th style="width:60px"></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Filtered)
+                    {
+                        <tr>
+                            <td><span class="td-code">@e.Codigo</span></td>
+                            <td style="font-weight:600">@e.Destinatario</td>
+                            <td class="td-muted">@e.EnderecoDestino</td>
+                            <td class="td-muted">@(e.RotaNome ?? "—")</td>
+                            <td>
+                                @if (e.MotoristaNome is not null)
+                                {
+                                    <div class="flex items-center gap-2">
+                                        <div class="avatar" style="width:26px;height:26px;font-size:10px">
+                                            @Initials(e.MotoristaNome)
+                                        </div>
+                                        <span>@e.MotoristaNome</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="td-muted">Não atribuído</span>
+                                }
+                            </td>
+                            <td class="td-muted">@e.DataPrevista.ToString("dd/MM/yyyy")</td>
+                            <td><DeliveryStatusBadge Status="@e.Status" /></td>
+                            @if (OnSelect.HasDelegate)
+                            {
+                                <td>
+                                    <button class="btn btn-ghost" title="Ver detalhes"
+                                            @onclick="() => OnSelect.InvokeAsync(e)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Entregas";
+    [Parameter] public IEnumerable<EntregaDto> Entregas { get; set; } = [];
+    [Parameter] public EventCallback OnCreate { get; set; }
+    [Parameter] public EventCallback<EntregaDto> OnSelect { get; set; }
+
+    private string searchTerm = "";
+
+    private IEnumerable<EntregaDto> Filtered => string.IsNullOrWhiteSpace(searchTerm)
+        ? Entregas
+        : Entregas.Where(e =>
+            e.Codigo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            e.Destinatario.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            e.EnderecoDestino.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            (e.MotoristaNome?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            ? $"{parts[0][0]}{parts[^1][0]}".ToUpper()
+            : name[..Math.Min(2, name.Length)].ToUpper();
+    }
+}

@@ -1,0 +1,64 @@
+@page "/dashboard"
+@inject ILogisticaService Svc
+@layout AppLayout
+
+<PageTitle>Dashboard – LogisticaPOC</PageTitle>
+
+@if (loading)
+{
+    <div class="loading-wrap"><div class="loading-spinner"></div><p>Carregando dashboard...</p></div>
+}
+else if (dashboard is null)
+{
+    <div class="alert alert-danger">
+        Não foi possível carregar os dados. Certifique-se que a API está rodando em http://localhost:5150.
+        <button class="btn btn-ghost" @onclick="Load" style="margin-left:8px">Tentar novamente</button>
+    </div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p>Visão geral das operações de logística</p>
+        </div>
+        <button class="btn btn-secondary" @onclick="Load">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            Atualizar
+        </button>
+    </div>
+
+    <DashboardCards Dashboard="dashboard" />
+
+    @if (dashboard.EntregasRecentes.Any())
+    {
+        <DeliveryTable Title="Entregas Recentes" Entregas="dashboard.EntregasRecentes"
+                       OnSelect="GoToEntregas" />
+    }
+}
+
+@code {
+    [CascadingParameter] AppLayout? Layout { get; set; }
+
+    private DashboardDto? dashboard;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Layout?.SetTitle("Dashboard");
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        try { dashboard = await Svc.GetDashboardAsync(); }
+        catch { dashboard = null; }
+        finally { loading = false; }
+    }
+
+    private void GoToEntregas(EntregaDto _) { /* navigate to entregas is handled by NavLink */ }
+}
