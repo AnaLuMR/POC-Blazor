@@ -1,4 +1,4 @@
-# LogisticaPOC — Blazor Multiplataforma
+# LogisticaPOC - Blazor Multiplataforma
 
 Prova de conceito de **Blazor com HTML/CSS/C#** rodando simultaneamente como aplicação **web** (navegador) e como aplicação **desktop nativa** (Windows, Linux e macOS), compartilhando os mesmos componentes Razor e consumindo a mesma API ASP.NET Core.
 
@@ -95,12 +95,12 @@ dotnet test tests/LogisticaPoc.Tests
 
 ## Tecnologias
 
-- **.NET 10** — SDK, runtime e web framework
-- **ASP.NET Core Minimal API** — API de logística com EF Core + SQLite
-- **Blazor Server** — UI web com renderização interativa no servidor
-- **PhotinoX.Blazor** — hospeda a mesma UI Blazor em janela desktop nativa (fork com suporte a .NET 10)
-- **Razor Class Library** — compartilhamento de componentes entre web e desktop
-- **xUnit** — testes com EF Core InMemory
+- **.NET 10** - SDK, runtime e web framework
+- **ASP.NET Core Minimal API** - API de logística com EF Core + SQLite
+- **Blazor Server** - UI web com renderização interativa no servidor
+- **PhotinoX.Blazor** - hospeda a mesma UI Blazor em janela desktop nativa (fork com suporte a .NET 10)
+- **Razor Class Library** - compartilhamento de componentes entre web e desktop
+- **xUnit** - testes com EF Core InMemory
 
 ---
 
@@ -116,7 +116,7 @@ dotnet test tests/LogisticaPoc.Tests
 ### Pontos de atenção
 
 - `@rendermode InteractiveServer` só se aplica no Web; o Desktop usa `App.razor` sem render mode
-- Photino.Blazor 4.x oficial só suporta até .NET 8 — usamos **PhotinoX.Blazor** (fork) que suporta .NET 10
+- Photino.Blazor 4.x oficial só suporta até .NET 8 - usamos **PhotinoX.Blazor** (fork) que suporta .NET 10
 - No Linux é necessário instalar WebKitGTK manualmente: `sudo apt install libwebkit2gtk-4.1-dev`
 - O Desktop abre uma janela nativa mas usa WebView interno, não é uma UI nativa pura
 - Para distribuir o Desktop como executável único, usar `dotnet publish -r win-x64 --self-contained`
